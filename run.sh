@@ -1,1 +1,2 @@
-python3 Pipeline.py
+#!/bin/bash
+sudo python3 Pipeline.py

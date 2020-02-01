@@ -1,0 +1,7 @@
+astro-tigger-lsm
+numpy
+scipy
+matplotlib
+cherrypy
+jinja2
+pillow

@@ -10,6 +10,7 @@ from matplotlib.patches import Ellipse
 import matplotlib.pylab as pl
 import Tigger
 from matplotlib import rc
+
 rc('text', usetex=True)
 
 def find_closest_power_of_two(number):
