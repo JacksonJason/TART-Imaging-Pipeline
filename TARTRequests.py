@@ -61,3 +61,17 @@ def get_latitude_and_frequency(loc):
         return "Error retreiving latitude"
     info = r.json()["info"]
     return(info["location"]["lat"], info["operating_frequency"])
+
+def get_gains_and_phases():
+    """
+    Sends a request to the TART API New Zealand
+    Retreives the gains and phases for calibration.
+
+    :returns: The gains and phases of the telescope.
+    """
+    # NZ
+    r = requests.get("https://tart.elec.ac.nz/signal/api/v1/calibration/gain")
+    if not r.status_code == 200:
+        return "Error retreiving gains"
+    info = r.json()
+    return(info["gain"], info["phase_offset"])

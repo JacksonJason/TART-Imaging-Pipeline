@@ -246,6 +246,7 @@ def get_visibilities(b_ENU, L, f, h0, h1, model_name, layout):
     :returns: The visibilities, the UV tracks, and the center declination as well
               as the center right ascention.
     """
+    print("Creating UV Tracks")
     h = np.linspace(h0,h1,num=600)*np.pi/12
     point_sources, l, m, dec, flux_sources, ra_0 = load_sky_model(model_name)
 
@@ -270,6 +271,7 @@ def load_sky_model(model_name):
               the points, the m coordinates of the points, the center declination,
               the flux sources, and the center right ascention
     """
+    print("Loading Sky Model")
     model = Tigger.load(model_name)
     RA_sources = []
     DEC_sources = []
@@ -372,6 +374,7 @@ def get_uv_and_uv_tracks(b_ENU, L, f, h, dec, point_sources):
     :returns: The UV tracks for the baseline and the UV coordinates for the
               sky model
     """
+    print("Getting UV Tracks")
     u_d, v_d = get_uv_tracks(b_ENU, L, f, h, dec)
 
     step_size = 200
@@ -584,6 +587,7 @@ def get_TART_uv_and_tracks(layout, L, f, visibilities):
 
     :returns: All of the UV tracks and coordinates across all the baselines for TART
     """
+    print("Getting UV Tracks")
     all_uv = []
     all_uv_tracks = []
     for i in range(len(layout)):
@@ -638,6 +642,7 @@ def image(uv, uv_tracks, cell_size, dec_0, res, name, showGrid):
 
     :returns: Nothing
     """
+    print("Imaging")
     c_s = float(cell_size)
     cell_size_l = c_s
     cell_size_m = c_s

@@ -20,10 +20,11 @@
           resolusion = $("#resolusion").val()
           loc = $("#loc").val()
           grid = $("#grid").is(':checked');
+          calibrate = $("#calibrate").is(':checked');
           cont = cell_size != "" && loc != ""
 
           if (cont) {
-            $.post("/generate_graphs",{cell_size:cell_size, loc:loc, showGrid: grid})
+            $.post("/generate_graphs",{cell_size:cell_size, loc:loc, showGrid: grid, calibrate:calibrate})
              .done(function(string) {
 
                var unique = $.now();
@@ -226,6 +227,7 @@
             <option value="1">ZA</option>
             <option value="2">NZ</option>\
           </select>
+          Calibrate: <input type="checkbox" name="calibrate" value="1" id="calibrate">
          <br>
          <button type="submit" id="generate_gif" class="btn btn-default btn-primary" style="margin-top: 0px;">Generate TART GIF</button>
          GIF Duration:
