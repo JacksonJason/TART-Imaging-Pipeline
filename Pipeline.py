@@ -48,7 +48,7 @@ class pipeline(object):
 
         gains, phase_offset = TR.get_gains_and_phases()
         if calibrate:
-            print("Calibrating")
+            cherrypy.log("Calibrating")
             for v in vis:
                 vis_matrix[v["i"]][v["j"]] = (v["re"] + 1j*v["im"]) * gains[v["i"]] * gains[v["j"]] * np.exp(-1j * (phase_offset[v["i"]] - phase_offset[v["j"]]))
         else:
@@ -131,7 +131,7 @@ class pipeline(object):
         if (res is not "" and input_file is not "" and lsm_file is not ""
             and baseline is not "" and cell_size is not ""):
 
-            print("Working on Custom Image")
+            cherrypy.log("Working on Custom Image")
 
             bl = baseline.split(" ")
             bl_1 = int(bl[0]) - 1
@@ -182,10 +182,10 @@ class pipeline(object):
 
         :returns: nothing
         """
-        print("Working on TART images")
+        cherrypy.log("Working on TART images")
 
         if cell_size is not "" and loc is not "":
-            print("Retrieiving telescope information")
+            cherrypy.log("Retrieiving telescope information")
             if showGrid == "true":
                 showGrid = True
             else:
@@ -206,7 +206,7 @@ class pipeline(object):
             res = 2 * 180/np.pi
 
             ut.image(all_uv, all_uv_tracks, cell_size, 0, res, "TART", showGrid)
-        print("Done")
+        cherrypy.log("Done")
 
     @cherrypy.expose
     def generate_gif(self, cell_size=None, loc=None, showGrid=False, duration=0):
@@ -246,10 +246,10 @@ class pipeline(object):
                 remaining_ms = 30000 - (round(time.time() * 1000) - begin_minute)
                 if remaining_ms > 0:
                     time.sleep(remaining_ms / 1000)
-                print(str(counter / 2) + " Minutes into GIF")
+                cherrypy.log(str(counter / 2) + " Minutes into GIF")
 
             except:
-                print("Error on " + str(counter))
+                cherrypy.log("Error on " + str(counter))
 
         frames = []
         images = [f for f in glob.glob(cwd + "/GIF/*.png", recursive=False)]
@@ -266,7 +266,7 @@ class pipeline(object):
         for item in dir:
             if item.endswith(".png"):
                 os.remove(os.path.join(cwd + "/GIF", item))
-        print("Done")
+        cherrypy.log("Done")
 
 
     @cherrypy.expose
@@ -279,7 +279,7 @@ class pipeline(object):
         return tmpl.render(target='Imaging pipeline')
 
 if __name__ == '__main__':
-    print("Started")
+    cherrypy.log("Started")
     conf = {
         '/': {
             'tools.sessions.on': True,
