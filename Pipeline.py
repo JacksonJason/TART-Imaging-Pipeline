@@ -47,10 +47,12 @@ class pipeline(object):
         vis_matrix = np.zeros((i+1, j+1)).astype(complex)
 
         gains, phase_offset = TR.get_gains_and_phases()
-        for v in vis:
-            if calibrate:
+        if calibrate:
+            print("Calibrating")
+            for v in vis:
                 vis_matrix[v["i"]][v["j"]] = (v["re"] + 1j*v["im"]) * gains[v["i"]] * gains[v["j"]] * np.exp(-1j * (phase_offset[v["i"]] - phase_offset[v["j"]]))
-            else:
+        else:
+            for v in vis:
                 vis_matrix[v["i"]][v["j"]] = v["re"] + 1j*v["im"]
 
         cc = vis_matrix.T
@@ -129,7 +131,7 @@ class pipeline(object):
         if (res is not "" and input_file is not "" and lsm_file is not ""
             and baseline is not "" and cell_size is not ""):
 
-            print("Working")
+            print("Working on Custom Image")
 
             bl = baseline.split(" ")
             bl_1 = int(bl[0]) - 1
@@ -204,6 +206,7 @@ class pipeline(object):
             res = 2 * 180/np.pi
 
             ut.image(all_uv, all_uv_tracks, cell_size, 0, res, "TART", showGrid)
+        print("Done")
 
     @cherrypy.expose
     def generate_gif(self, cell_size=None, loc=None, showGrid=False, duration=0):
@@ -263,6 +266,7 @@ class pipeline(object):
         for item in dir:
             if item.endswith(".png"):
                 os.remove(os.path.join(cwd + "/GIF", item))
+        print("Done")
 
 
     @cherrypy.expose
@@ -275,6 +279,7 @@ class pipeline(object):
         return tmpl.render(target='Imaging pipeline')
 
 if __name__ == '__main__':
+    print("Started")
     conf = {
         '/': {
             'tools.sessions.on': True,

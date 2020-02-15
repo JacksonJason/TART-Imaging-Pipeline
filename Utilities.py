@@ -684,7 +684,7 @@ def image(uv, uv_tracks, cell_size, dec_0, res, name, showGrid):
     image /= scale_factor
     psf_image /= scale_factor
 
-    draw_image(image, Nl, Nm, cell_size_l, cell_size_m, L, M, name + " SkyModel", "l [degrees]", "m [degrees]", cell_size_error, showGrid)
+    draw_image(image, Nl, Nm, cell_size_l, cell_size_m, L, M, name + " Sky Model", "l [degrees]", "m [degrees]", cell_size_error, showGrid)
     draw_image(psf_image, Nl, Nm, cell_size_l, cell_size_m, L, M, name + " PSF", "l [degrees]", "m [degrees]", cell_size_error, False)
 
 def grid(Nl, Nm, uv_tracks, uv, cell_size_l, cell_size_m):
