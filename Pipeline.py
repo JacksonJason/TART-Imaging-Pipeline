@@ -11,6 +11,7 @@ import glob
 import shutil
 import os
 import re
+import datetime
 env = Environment(loader=FileSystemLoader('html'))
 
 class pipeline(object):
@@ -96,6 +97,41 @@ class pipeline(object):
         """
         layoutJSON = TR.antenna_layout(loc)
         return np.array(layoutJSON)
+
+
+
+    def generate(self, cell_size, layout, L, f, visibilities, showGrid):
+        """
+        Generates the image files, all of the hard processing is done here
+
+        :param cell_size: The cell size for the imaging process
+        :type cell_size: str
+
+        :param layout: The antenna layout
+        :type layout: array
+
+        :param L: The Latitude of the antenna
+        :type L: int
+
+        :param f: The frequency of the antenna
+        :type f: int
+
+        :param visibilities: The visibilities from the antenna
+        :type visibilities: array
+
+        :param showGrid: The boolean telling us whether to show the grid or
+                        not on the images
+        :type showGrid: boolean
+
+        :returns: nothing
+        """
+        ut.plot_array(layout, "TART")
+
+        all_uv, all_uv_tracks = ut.get_TART_uv_and_tracks(layout, L, f, visibilities)
+
+        res = 2 * 180/np.pi
+
+        ut.image(all_uv, all_uv_tracks, cell_size, 0, res, "TART", showGrid)
 
     @cherrypy.expose
     def generate_custom_graphs(self, input_file=None, lsm_file=None,
@@ -199,14 +235,30 @@ class pipeline(object):
             layout = self.get_antenna_layout(loc)
             L,f = TR.get_latitude_and_frequency(loc)
             visibilities = self.make_vis_matrix(loc, calibrate)
-            ut.plot_array(layout, "TART")
 
-            all_uv, all_uv_tracks = ut.get_TART_uv_and_tracks(layout, L, f, visibilities)
+            # Save the most recent visibilities
+            location = ''
+            if loc == 1:
+                location = "ZA"
+            else:
+                location = "NZ"
 
-            res = 2 * 180/np.pi
+            calibrated = ''
+            if calibrate:
+                calibrated = "Calibrated"
+            else:
+                calibrated = "Not_Calibrated"
 
-            ut.image(all_uv, all_uv_tracks, cell_size, 0, res, "TART", showGrid)
+            layout_l_f_visibilties = np.asarray([layout, L, f, visibilities])
+            if not os.path.exists('Saved_Visibilities'):
+                os.makedirs('Saved_Visibilities')
+            fileName = 'Saved_Visibilities' + os.path.sep +'Visibilities_{:%Y-%m-%d-%H-%M-%S}_'.format(datetime.datetime.now()) + "_"+ location + "_" + calibrated
+            np.save(fileName, layout_l_f_visibilties, allow_pickle=True)
+
+            self.generate(cell_size, layout, L, f, visibilities, showGrid)
+
         cherrypy.log("Done")
+
 
     @cherrypy.expose
     def generate_gif(self, cell_size=None, loc=None, showGrid=False, duration=0):
@@ -268,6 +320,40 @@ class pipeline(object):
                 os.remove(os.path.join(cwd + "/GIF", item))
         cherrypy.log("Done")
 
+
+    @cherrypy.expose
+    def use_saved_visibilities(self, cell_size=None, file_name=None, showGrid=False):
+        """
+        Called by the HTML page when the Saved Visibilities Generationbutton is pressed.
+        The HTML page sends the file selected to the function and it is
+        executed.
+
+        :param file_name: The name of the file for the imaging process
+        :type file_name: str
+
+        :returns: nothing
+        """
+        cherrypy.log("Working on TART images from file")
+        if cell_size is not "":
+            if showGrid == "true":
+                showGrid = True
+            else:
+                showGrid = False
+            print(showGrid)
+            cherrypy.log("Loading data from file")
+            upload_path = os.path.dirname(__file__)
+            file_name = file_name.split("\\")[-1]
+            file_name = os.path.normpath(os.path.join(upload_path, file_name))
+            file_name = 'Saved_Visibilities' + os.path.sep + file_name
+
+            layout_l_f_visibilties = np.load(file_name, allow_pickle=True)
+            layout = layout_l_f_visibilties[0]
+            L = layout_l_f_visibilties[1]
+            f = layout_l_f_visibilties[2]
+            visibilities = layout_l_f_visibilties[3]
+
+            self.generate(cell_size, layout, L, f, visibilities, showGrid)
+        cherrypy.log("Done")
 
     @cherrypy.expose
     def index(self):
