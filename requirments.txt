@@ -1,4 +1,3 @@
-astro-tigger-lsm
 numpy
 scipy
 matplotlib

@@ -1,5 +1,6 @@
 import requests
 
+
 def antenna_layout(loc):
     """
     Sends a request to the TART API in either New Zealand or South Africa
@@ -19,6 +20,7 @@ def antenna_layout(loc):
     if not r.status_code == 200:
         return "Error retreiving antenna positions"
     return r.json()
+
 
 def get_visibilities(loc):
     """
@@ -41,6 +43,7 @@ def get_visibilities(loc):
         return "Error retreiving visibilities"
     return r.json()
 
+
 def get_latitude_and_frequency(loc):
     """
     Sends a request to the TART API in either New Zealand or South Africa
@@ -60,7 +63,8 @@ def get_latitude_and_frequency(loc):
     if not r.status_code == 200:
         return "Error retreiving latitude"
     info = r.json()["info"]
-    return(info["location"]["lat"], info["operating_frequency"])
+    return (info["location"]["lat"], info["operating_frequency"])
+
 
 def get_gains_and_phases():
     """
@@ -74,4 +78,4 @@ def get_gains_and_phases():
     if not r.status_code == 200:
         return "Error retreiving gains"
     info = r.json()
-    return(info["gain"], info["phase_offset"])
+    return (info["gain"], info["phase_offset"])

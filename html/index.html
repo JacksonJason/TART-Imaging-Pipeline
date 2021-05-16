@@ -90,13 +90,14 @@
           cell_size = $("#cell_size").val()
           resolusion = $("#resolusion").val()
           grid = $("#grid").is(':checked');
+          gauss = $("#gauss").is(':checked');
           cont = resolusion != "" && $("#input_file").val() != "" && $("#lsm_file").val()
                   != "" && base != "" && cell_size != ""
 
           if (cont) {
             $.post("/generate_custom_graphs",{input_file:$("#input_file").val(),
                   lsm_file:$("#lsm_file").val(), baseline:base,
-                  cell_size:cell_size, res: resolusion, showGrid: grid})
+                  cell_size:cell_size, res: resolusion, showGrid: grid, add_gauss: gauss})
              .done(function(string) {
 
                var unique = $.now();
@@ -328,7 +329,9 @@
 
          <br>
 
-         <button type="submit" id="generate_custom_graphs" class="btn btn-default btn-primary">Generate custom layout graphs</button><br>
+         <button type="submit" id="generate_custom_graphs" class="btn btn-default btn-primary">Generate custom layout graphs</button>
+         Add gaussian kernel: <input type="checkbox" name="gauss" value="1" id="gauss">
+         <br>
          <div class="col-sm-6">
            <img src="static/CustomAntennaLayout.png" alt="image alt text" id=c_antenna  width="512" height="384">
          </div>
