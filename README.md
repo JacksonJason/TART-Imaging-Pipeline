@@ -8,11 +8,16 @@ does not use calibration or deconvolution in the process of imaging.
 
 ## Running
 Python 3 must be installed as well as the requirements listed below.
-Latex must also be installed for the image axes. The following are recommended
-* texlive-latex-extra
-* texlive-fonts-recommended
-* dvipng
-* cm-super
+
+[comment]: <> (Latex must also be installed for the image axes. The following are recommended)
+
+[comment]: <> (* texlive-latex-extra)
+
+[comment]: <> (* texlive-fonts-recommended)
+
+[comment]: <> (* dvipng)
+
+[comment]: <> (* cm-super)
 
 
 Simply run the run.bat or run.sh depending on your operating system.

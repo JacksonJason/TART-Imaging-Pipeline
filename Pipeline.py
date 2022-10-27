@@ -2,7 +2,6 @@ import TARTRequests as TR
 import numpy as np
 import Utilities as ut
 import cherrypy
-import os
 import json
 from jinja2 import Environment, FileSystemLoader
 import time
@@ -12,8 +11,10 @@ import shutil
 import os
 import re
 import datetime
+
 env = Environment(loader=FileSystemLoader('html'))
 cherrypy.config.update({'server.socket_port': 8099})
+
 
 class pipeline(object):
 
@@ -30,7 +31,7 @@ class pipeline(object):
         (See Toothy's implementation in the comments)
         https://stackoverflow.com/questions/5967500/how-to-correctly-sort-a-string-with-a-number-inside
         """
-        return [ self.atoi(c) for c in re.split(r'(\d+)', text) ]
+        return [self.atoi(c) for c in re.split(r'(\d+)', text)]
 
     def make_vis_matrix(self, loc, calibrate):
         """
@@ -45,17 +46,18 @@ class pipeline(object):
         vis = TR.get_visibilities(loc)
         vis = np.array(vis["data"])
 
-        i,j = self.parse_vis(vis)
-        vis_matrix = np.zeros((i+1, j+1)).astype(complex)
+        i, j = self.parse_vis(vis)
+        vis_matrix = np.zeros((i + 1, j + 1)).astype(complex)
 
         gains, phase_offset = TR.get_gains_and_phases()
         if calibrate:
             cherrypy.log("Calibrating")
             for v in vis:
-                vis_matrix[v["i"]][v["j"]] = (v["re"] + 1j*v["im"]) * gains[v["i"]] * gains[v["j"]] * np.exp(-1j * (phase_offset[v["i"]] - phase_offset[v["j"]]))
+                vis_matrix[v["i"]][v["j"]] = (v["re"] + 1j * v["im"]) * gains[v["i"]] * gains[v["j"]] * np.exp(
+                    -1j * (phase_offset[v["i"]] - phase_offset[v["j"]]))
         else:
             for v in vis:
-                vis_matrix[v["i"]][v["j"]] = v["re"] + 1j*v["im"]
+                vis_matrix[v["i"]][v["j"]] = v["re"] + 1j * v["im"]
 
         cc = vis_matrix.T
         cc = np.conj(cc)
@@ -88,7 +90,7 @@ class pipeline(object):
             if v['j'] >= j:
                 j = v['j']
 
-        return i+1,j
+        return i + 1, j
 
     def get_antenna_layout(self, loc):
         """
@@ -98,8 +100,6 @@ class pipeline(object):
         """
         layoutJSON = TR.antenna_layout(loc)
         return np.array(layoutJSON)
-
-
 
     def generate(self, cell_size, layout, L, f, visibilities, showGrid):
         """
@@ -130,14 +130,14 @@ class pipeline(object):
 
         all_uv, all_uv_tracks = ut.get_TART_uv_and_tracks(layout, L, f, visibilities)
 
-        res = 2 * 180/np.pi
+        res = 2 * 180 / np.pi
 
         ut.image(all_uv, all_uv_tracks, cell_size, 0, res, "TART", showGrid)
 
     @cherrypy.expose
     def generate_custom_graphs(self, input_file=None, sky_model_file=None,
-                                baseline=None, cell_size=None, res=None,
-                                showGrid=False):
+                               baseline=None, cell_size=None, res=None,
+                               showGrid=False, add_gauss=False):
         """
         Called by the HTML page when the generate Custom graphs button is pressed.
         The HTML page sends the information entered in the fields to the function and it is
@@ -166,7 +166,7 @@ class pipeline(object):
         """
         upload_path = os.path.dirname(__file__)
         if (res != "" and input_file != "" and sky_model_file != ""
-            and baseline != "" and cell_size != ""):
+                and baseline != "" and cell_size != ""):
 
             cherrypy.log("Working on Custom Image")
 
@@ -184,22 +184,22 @@ class pipeline(object):
             ut.plot_array(custom_layout, "Custom")
             b = custom_layout[bl_2] - custom_layout[bl_1]
             custom_L = json_antenna['latitude']
-            custom_L = (np.pi/180)* (custom_L[0] + custom_L[1]/60. + custom_L[2]/3600.)
+            custom_L = (np.pi / 180) * (custom_L[0] + custom_L[1] / 60. + custom_L[2] / 3600.)
             custom_f = json_antenna['frequency']
-            custom_f = custom_f * 10**9
+            custom_f = custom_f * 10 ** 9
 
             sha = json_antenna['sha']
             eha = json_antenna['eha']
             dec = json_antenna['center_dec']
-            dec = dec[0] + dec[1]/60. + dec[2]/3600.
+            dec = dec[0] + dec[1] / 60. + dec[2] / 3600.
 
             ut.plot_baseline(b, custom_L, custom_f, sha, eha, dec, "CUSTOM")
-            uv, uv_tracks, dec_0, ra_0 = ut.get_visibilities(b, custom_L, custom_f, sha, eha, os.path.join(upload_path, "Sky_Models", sky_model_file), custom_layout)
-            if showGrid == "true":
-                showGrid = True
-            else:
-                showGrid = False
-            ut.image(uv, uv_tracks, cell_size, dec_0, res, "CUSTOM", showGrid)
+
+            add_gauss = add_gauss == "true" if True else False
+            uv, uv_tracks, dec_0, ra_0 = ut.get_visibilities(b, custom_L, custom_f, sha, eha, os.path.join(upload_path, "Sky_Models", sky_model_file),
+                                                             custom_layout, add_gauss)
+            show_grid = showGrid == "true" if True else False
+            ut.image(uv, uv_tracks, cell_size, dec_0, res, "CUSTOM", show_grid)
 
     @cherrypy.expose
     def generate_graphs(self, cell_size=None, loc=None, showGrid=False, calibrate=False):
@@ -234,7 +234,7 @@ class pipeline(object):
                 calibrate = False
 
             layout = self.get_antenna_layout(loc)
-            L,f = TR.get_latitude_and_frequency(loc)
+            L, f = TR.get_latitude_and_frequency(loc)
             visibilities = self.make_vis_matrix(loc, calibrate)
 
             # Save the most recent visibilities
@@ -253,13 +253,13 @@ class pipeline(object):
             layout_l_f_visibilties = np.asarray([layout, L, f, visibilities])
             if not os.path.exists('Saved_Visibilities'):
                 os.makedirs('Saved_Visibilities')
-            fileName = 'Saved_Visibilities' + os.path.sep +'Visibilities_{:%Y-%m-%d-%H-%M-%S}_'.format(datetime.datetime.now()) + "_"+ location + "_" + calibrated
+            fileName = 'Saved_Visibilities' + os.path.sep + 'Visibilities_{:%Y-%m-%d-%H-%M-%S}_'.format(
+                datetime.datetime.now()) + "_" + location + "_" + calibrated
             np.save(fileName, layout_l_f_visibilties, allow_pickle=True)
 
             self.generate(cell_size, layout, L, f, visibilities, showGrid)
 
         cherrypy.log("Done")
-
 
     @cherrypy.expose
     def generate_gif(self, cell_size=None, loc=None, showGrid=False, duration=0):
@@ -313,14 +313,14 @@ class pipeline(object):
             frames.append(new_frame)
             counter += 1
 
-        frames[0].save(cwd + "/GIF/observation_period.gif", format='GIF', append_images=frames[1:], save_all=True, duration=200, loop=0)
+        frames[0].save(cwd + "/GIF/observation_period.gif", format='GIF', append_images=frames[1:], save_all=True,
+                       duration=200, loop=0)
 
         dir = os.listdir(cwd + "/GIF")
         for item in dir:
             if item.endswith(".png"):
                 os.remove(os.path.join(cwd + "/GIF", item))
         cherrypy.log("Done")
-
 
     @cherrypy.expose
     def use_saved_visibilities(self, cell_size=None, file_name=None, showGrid=False):
@@ -365,6 +365,7 @@ class pipeline(object):
         tmpl = env.get_template('index.html')
         return tmpl.render(target='Imaging pipeline')
 
+
 if __name__ == '__main__':
     cherrypy.log("Started")
     conf = {
@@ -375,6 +376,6 @@ if __name__ == '__main__':
         '/static': {
             'tools.staticdir.on': True,
             'tools.staticdir.dir': './Plots'
-        } # This sets the locations of images and such for cherrypy
+        }  # This sets the locations of images and such for cherrypy
     }
     cherrypy.quickstart(pipeline(), '/', conf)

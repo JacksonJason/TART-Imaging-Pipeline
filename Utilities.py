@@ -1,18 +1,21 @@
+import json
+
 import numpy as np
 import matplotlib
+
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from matplotlib.patches import Circle
 import scipy.constants
 import math
-from mpl_toolkits.mplot3d import Axes3D
 from matplotlib.patches import Ellipse
 import matplotlib.pylab as pl
 import json
 from matplotlib import rc
 import cherrypy
 
-rc('text', usetex=True)
+
+# rc('text', usetex=True)
 
 def find_closest_power_of_two(number):
     """
@@ -29,6 +32,7 @@ def find_closest_power_of_two(number):
             return s
         else:
             s *= 2
+
 
 def draw_matrix(matrix):
     """
@@ -52,6 +56,7 @@ def draw_matrix(matrix):
     plt.savefig('Plots/Antenna_Visibilities.png', transparent=True)
     plt.close()
 
+
 def get_B(b_ENU, L):
     """
     Converts the xyz form of the baseline into the coordinate system XYZ
@@ -64,13 +69,14 @@ def get_B(b_ENU, L):
 
     :returns: The baseline in XYZ
     """
-    D = math.sqrt(np.sum((b_ENU)**2))
-    A = np.arctan2(b_ENU[0],b_ENU[1])
-    E = np.arcsin(b_ENU[2]/D)
-    B = np.array([D * (math.cos(L)*math.sin(E) - math.sin(L) * math.cos(E)*math.cos(A)),
-                D * (math.cos(E)*math.sin(A)),
-                D * (math.sin(L)*math.sin(E) + math.cos(L) * math.cos(E)*math.cos(A))])
+    D = math.sqrt(np.sum((b_ENU) ** 2))
+    A = np.arctan2(b_ENU[0], b_ENU[1])
+    E = np.arcsin(b_ENU[2] / D)
+    B = np.array([D * (math.cos(L) * math.sin(E) - math.sin(L) * math.cos(E) * math.cos(A)),
+                  D * (math.cos(E) * math.sin(A)),
+                  D * (math.sin(L) * math.sin(E) + math.cos(L) * math.cos(E) * math.cos(A))])
     return B
+
 
 def get_lambda(f):
     """
@@ -82,8 +88,9 @@ def get_lambda(f):
     :returns: Lambda, wavelength
     """
     c = scipy.constants.c
-    lam = c/f
+    lam = c / f
     return lam
+
 
 def plot_baseline(b_ENU, L, f, h0, h1, dec, name):
     """
@@ -117,22 +124,23 @@ def plot_baseline(b_ENU, L, f, h0, h1, dec, name):
     """
     B = get_B(b_ENU, L)
     lam = get_lambda(f)
-    h = np.linspace(h0,h1,num=600)*np.pi/12
+    h = np.linspace(h0, h1, num=600) * np.pi / 12
 
     X = B[0]
     Y = B[1]
     Z = B[2]
 
-    u = lam**(-1)*(np.sin(h)*X+np.cos(h)*Y)
-    v = lam**(-1)*(-np.sin(dec)*np.cos(h)*X+np.sin(dec)*np.sin(h)*Y+np.cos(dec)*Z)
+    u = lam ** (-1) * (np.sin(h) * X + np.cos(h) * Y)
+    v = lam ** (-1) * (-np.sin(dec) * np.cos(h) * X + np.sin(dec) * np.sin(h) * Y + np.cos(dec) * Z)
 
-    a = np.sqrt(X**2+Y**2)/lam
-    b = a*np.sin(dec)
-    v0 = (Z/lam)*np.cos(dec)
+    a = np.sqrt(X ** 2 + Y ** 2) / lam
+    b = a * np.sin(dec)
+    v0 = (Z / lam) * np.cos(dec)
 
-    UVellipse(u,v,a,b,v0, name)
+    UVellipse(u, v, a, b, v0, name)
 
-def UVellipse(u,v,a,b,v0, name):
+
+def UVellipse(u, v, a, b, v0, name):
     """
     This code is taken from the fundamentals of interferometry notebook.
     It plots an ellipse for the baseline pair and saves it as a png file in
@@ -158,20 +166,20 @@ def UVellipse(u,v,a,b,v0, name):
 
     :returns: Nothing
     """
-    fig=plt.figure(0, figsize=(8,8))
+    fig = plt.figure(0, figsize=(8, 8))
 
-    e1=Ellipse(xy=np.array([0,v0]),width=2*a,height=2*b,angle=0)
-    e2=Ellipse(xy=np.array([0,-v0]),width=2*a,height=2*b,angle=0)
+    e1 = Ellipse(xy=np.array([0, v0]), width=2 * a, height=2 * b, angle=0)
+    e2 = Ellipse(xy=np.array([0, -v0]), width=2 * a, height=2 * b, angle=0)
 
-    ax=fig.add_subplot(111,aspect="equal")
+    ax = fig.add_subplot(111, aspect="equal")
 
-    ax.plot([0],[v0],"go")
-    ax.plot([0],[-v0],"go")
-    ax.plot(u[0],v[0],"bo")
-    ax.plot(u[-1],v[-1],"bo")
+    ax.plot([0], [v0], "go")
+    ax.plot([0], [-v0], "go")
+    ax.plot(u[0], v[0], "bo")
+    ax.plot(u[-1], v[-1], "bo")
 
-    ax.plot(-u[0],-v[0],"ro")
-    ax.plot(-u[-1],-v[-1],"ro")
+    ax.plot(-u[0], -v[0], "ro")
+    ax.plot(-u[-1], -v[-1], "ro")
 
     ax.add_artist(e1)
     e1.set_lw(1)
@@ -186,8 +194,8 @@ def UVellipse(u,v,a,b,v0, name):
     e2.set_facecolor("w")
     e2.set_edgecolor("r")
     e2.set_alpha(0.5)
-    ax.plot(u,v,"b")
-    ax.plot(-u,-v,"r")
+    ax.plot(u, v, "b")
+    ax.plot(-u, -v, "r")
     ax.grid(True)
     plt.title("UV Coverage", size=26)
     plt.xlabel("u", size=22)
@@ -195,6 +203,7 @@ def UVellipse(u,v,a,b,v0, name):
     ax.tick_params(labelsize=20)
     plt.savefig('Plots/' + name + 'UVCoverage.png', transparent=True)
     plt.close()
+
 
 def plot_array(antennas, name):
     """
@@ -208,8 +217,8 @@ def plot_array(antennas, name):
 
     :returns: Nothing
     """
-    plt.figure(figsize=(10,10))
-    plt.scatter(antennas[:,0], antennas[:,1])
+    plt.figure(figsize=(10, 10))
+    plt.scatter(antennas[:, 0], antennas[:, 1])
     plt.grid(True)
     plt.xlabel('E-W [m]', size=24)
     plt.ylabel('N-S [m]', size=24)
@@ -219,7 +228,8 @@ def plot_array(antennas, name):
     plt.savefig('Plots/' + name + 'AntennaLayout.png', transparent=True)
     plt.close()
 
-def get_visibilities(b_ENU, L, f, h0, h1, model_name, layout):
+
+def get_visibilities(b_ENU, L, f, h0, h1, model_name, layout, add_gauss):
     """
     Gets the visibilities from the sky model, also calculates the uv_tracks
 
@@ -244,22 +254,26 @@ def get_visibilities(b_ENU, L, f, h0, h1, model_name, layout):
     :param layout: The antenna layout
     :type layout: numpy float array
 
+    :param add_gauss: Add the gaussian kernel to the visibilities
+    :type add_gauss: Boolean
+
     :returns: The visibilities, the UV tracks, and the center declination as well
               as the center right ascention.
     """
     cherrypy.log("Creating UV Tracks")
-    h = np.linspace(h0,h1,num=600)*np.pi/12
+    h = np.linspace(h0, h1, num=600) * np.pi / 12
     point_sources, l, m, dec, flux_sources, ra_0 = load_sky_model(model_name)
 
-    plot_sky_model(l*(180/np.pi), m*(180/np.pi), flux_sources, "l [degrees]", "m [degrees]")
+    plot_sky_model(l * (180 / np.pi), m * (180 / np.pi), flux_sources, "l [degrees]", "m [degrees]")
 
-    uv, u_d, v_d, uu, vv, uv_tracks = get_uv_and_uv_tracks(b_ENU, L, f, h, dec, point_sources)
+    uv, u_d, v_d, uu, vv, uv_tracks = get_uv_and_uv_tracks(b_ENU, L, f, h, dec, point_sources, add_gauss)
     plot_uv_tracks(uv_tracks)
 
     plot_visibilities(u_d, v_d, uu, vv, point_sources)
-    all_uv_tracks, all_uv = get_all_uv_and_uv_tracks(L, f, h, dec, point_sources, layout)
+    all_uv_tracks, all_uv = get_all_uv_and_uv_tracks(L, f, h, dec, point_sources, layout, add_gauss)
 
     return all_uv, all_uv_tracks, dec, ra_0
+
 
 def load_sky_model(model_name):
     """
@@ -293,20 +307,21 @@ def load_sky_model(model_name):
     ra_0_rad = ra_0 * (np.pi/12)
     dec_0_rad = dec_0 * (np.pi/180)
 
-    RA_rad = RA_sources*(np.pi/12)
-    DEC_rad = DEC_sources*(np.pi/180)
-    RA_delta_rad = RA_rad-ra_0_rad
+    RA_rad = RA_sources * (np.pi / 12)
+    DEC_rad = DEC_sources * (np.pi / 180)
+    RA_delta_rad = RA_rad - ra_0_rad
 
-    l = np.cos(DEC_rad)*np.sin(RA_delta_rad)
-    m = (np.sin(DEC_rad)*np.cos(dec_0_rad)-np.cos(DEC_rad)*np.sin(dec_0_rad)*np.cos(RA_delta_rad))
+    l = np.cos(DEC_rad) * np.sin(RA_delta_rad)
+    m = (np.sin(DEC_rad) * np.cos(dec_0_rad) - np.cos(DEC_rad) * np.sin(dec_0_rad) * np.cos(RA_delta_rad))
 
-    point_sources = np.zeros((len(RA_sources),3))
-    point_sources[:,0] = Flux_sources
-    point_sources[:,1] = l[0:]
-    point_sources[:,2] = m[0:]
+    point_sources = np.zeros((len(RA_sources), 3))
+    point_sources[:, 0] = Flux_sources
+    point_sources[:, 1] = l[0:]
+    point_sources[:, 2] = m[0:]
     dec = dec_0
 
     return point_sources, l, m, dec_0, Flux_sources, ra_0_rad
+
 
 def plot_sky_model(l, m, Flux_sources, x, y):
     """
@@ -327,7 +342,7 @@ def plot_sky_model(l, m, Flux_sources, x, y):
     :param y: The name for the y axis
     :type y: str
     """
-    fig = plt.figure(figsize=(12,8))
+    fig = plt.figure(figsize=(12, 8))
     ax = fig.add_subplot(111)
     plt.xlabel(x, size=24)
     plt.ylabel(y, size=24)
@@ -335,25 +350,29 @@ def plot_sky_model(l, m, Flux_sources, x, y):
     max_flux = max(Flux_sources)
 
     if max_flux > 1:
-        col = (Flux_sources/max_flux)
+        col = (Flux_sources / max_flux)
     else:
         col = Flux_sources
 
     colour = []
     for i in col:
-        colour.append((i,i,i))
+        colour.append((i, i, i))
 
-    plt.scatter(l,m,c=colour,s=8)
+    plt.scatter(l, m, c=colour, s=8)
     ax.set_facecolor('xkcd:black')
     fig.patch.set_alpha(0)
     plt.title("Sky Model", size=26)
     plt.savefig("Plots/SkyModel.png", transparent=False)
     plt.close()
 
-def get_uv_and_uv_tracks(b_ENU, L, f, h, dec, point_sources):
+
+def get_uv_and_uv_tracks(b_ENU, L, f, h, dec, point_sources, add_gauss=False):
     """
     Gets the UV tracks for the baseline as well as the UV coordinates
     for the visibilities from the sky model file
+
+    :param point_sources: the array of point sources
+    :type numpy array
 
     :param b_ENU: The baseline in xyz format.
     :type b_ENU: float array
@@ -373,17 +392,20 @@ def get_uv_and_uv_tracks(b_ENU, L, f, h, dec, point_sources):
     :param dec: The point sources for the sky model
     :type dec: numpy array
 
+    :param add_gauss: Add the gaussian kernel to the visibilities
+    :type add_gauss: Boolean
+
     :returns: The UV tracks for the baseline and the UV coordinates for the
               sky model
     """
     u_d, v_d = get_uv_tracks(b_ENU, L, f, h, dec)
 
     step_size = 200
-    u = np.linspace(-1*(np.amax(np.abs(u_d)))-10, np.amax(np.abs(u_d))+10, num=step_size, endpoint=True)
-    v = np.linspace(-1*(np.amax(abs(v_d)))-10, np.amax(abs(v_d))+10, num=step_size, endpoint=True)
+    u = np.linspace(-1 * (np.amax(np.abs(u_d))) - 10, np.amax(np.abs(u_d)) + 10, num=step_size, endpoint=True)
+    v = np.linspace(-1 * (np.amax(abs(v_d))) - 10, np.amax(abs(v_d)) + 10, num=step_size, endpoint=True)
 
     uu, vv = np.meshgrid(u, v)
-    uv_tracks = calculate_uv_tracks(point_sources, u_d, v_d)
+    uv_tracks = calculate_uv_tracks(point_sources, u_d, v_d, add_gauss)
 
     uv = []
     for i in range(len(u_d)):
@@ -392,6 +414,7 @@ def get_uv_and_uv_tracks(b_ENU, L, f, h, dec, point_sources):
     uv = np.array(uv)
 
     return uv, u_d, v_d, uu, vv, uv_tracks
+
 
 def get_uv_tracks(b_ENU, L, f, h, dec):
     """
@@ -421,12 +444,13 @@ def get_uv_tracks(b_ENU, L, f, h, dec):
     Y = B[1]
     Z = B[2]
 
-    u = lam**(-1)*(np.sin(h)*X+np.cos(h)*Y)
-    v = lam**(-1)*(-np.sin(dec)*np.cos(h)*X+np.sin(dec)*np.sin(h)*Y+np.cos(dec)*Z)
+    u = lam ** (-1) * (np.sin(h) * X + np.cos(h) * Y)
+    v = lam ** (-1) * (-np.sin(dec) * np.cos(h) * X + np.sin(dec) * np.sin(h) * Y + np.cos(dec) * Z)
 
     return u, v
 
-def calculate_uv_tracks(point_sources, u, v):
+
+def calculate_uv_tracks(point_sources, u, v, add_gauss):
     """
     Calculates the UV tracks using a fourier transform.
 
@@ -439,17 +463,26 @@ def calculate_uv_tracks(point_sources, u, v):
     :param v: The v coordinates of the uv tracks
     :type v: numpy float array
 
+    :param add_gauss: Add the gaussian kernel to the visibilities
+    :type add_gauss: Boolean
+
     :returns: The UV tracks/coordinates for the baseline and point source
     """
     z = np.zeros(u.shape).astype(complex)
     s = point_sources.shape
+    sigma = 0.0005
+    gaussian = 1
+    if add_gauss:
+        gaussian = (2 * np.pi * sigma ** 2) * np.exp(-2 * np.pi ** 2 * sigma ** 2 * (u ** 2 + v ** 2))
+
     for counter in range(0, s[0]):
-        A_i = point_sources[counter,0]
-        l_i = point_sources[counter,1]
-        m_i = point_sources[counter,2]
-        z += A_i*np.exp(-1*2*np.pi*1j*((u*l_i)+(v*m_i)))
+        A_i = point_sources[counter, 0]
+        l_i = point_sources[counter, 1]
+        m_i = point_sources[counter, 2]
+        z += A_i * np.exp(-1 * 2 * np.pi * 1j * ((u * l_i) + (v * m_i))) * gaussian
 
     return z
+
 
 def plot_uv_tracks(uv_tracks):
     """
@@ -477,6 +510,7 @@ def plot_uv_tracks(uv_tracks):
 
     plt.close()
 
+
 def plot_visibilities(u, v, uu, vv, point_sources):
     """
     Plots the visibilities for the baseline chosen.
@@ -500,31 +534,31 @@ def plot_visibilities(u, v, uu, vv, point_sources):
     s = point_sources.shape
 
     for counter in range(0, s[0]):
-        A_i = point_sources[counter,0]
-        l_i = point_sources[counter,1]
-        m_i = point_sources[counter,2]
-        zz += A_i*np.exp(-2*np.pi*1j*(uu*l_i+vv*m_i))
-    zz = zz[:,::-1]
+        A_i = point_sources[counter, 0]
+        l_i = point_sources[counter, 1]
+        m_i = point_sources[counter, 2]
+        zz += A_i * np.exp(-2 * np.pi * 1j * (uu * l_i + vv * m_i))
+    zz = zz[:, ::-1]
 
     plt.figure()
     plt.set_cmap('viridis')
     plt.subplot(121)
-    plt.imshow(zz.real,extent=[-1*(np.amax(np.abs(u)))-10, np.amax(np.abs(u))+10,-1*(np.amax(abs(v)))-10, \
-                               np.amax(abs(v))+10])
+    plt.imshow(zz.real, extent=[-1 * (np.amax(np.abs(u))) - 10, np.amax(np.abs(u)) + 10, -1 * (np.amax(abs(v))) - 10, \
+                                np.amax(abs(v)) + 10])
 
-    plt.plot(u,v,"k")
-    plt.xlim([-1*(np.amax(np.abs(u)))-10, np.amax(np.abs(u))+10])
-    plt.ylim(-1*(np.amax(abs(v)))-10, np.amax(abs(v))+10)
+    plt.plot(u, v, "k")
+    plt.xlim([-1 * (np.amax(np.abs(u))) - 10, np.amax(np.abs(u)) + 10])
+    plt.ylim(-1 * (np.amax(abs(v))) - 10, np.amax(abs(v)) + 10)
     plt.xlabel("u", size=18)
     plt.ylabel("v", size=18)
     plt.title("Real part of visibilities", size=18)
 
     plt.subplot(122)
-    plt.imshow(zz.imag,extent=[-1*(np.amax(np.abs(u)))-10, np.amax(np.abs(u))+10,-1*(np.amax(abs(v)))-10, \
-                               np.amax(abs(v))+10])
-    plt.plot(u,v,"k")
-    plt.xlim([-1*(np.amax(np.abs(u)))-10, np.amax(np.abs(u))+10])
-    plt.ylim(-1*(np.amax(abs(v)))-10, np.amax(abs(v))+10)
+    plt.imshow(zz.imag, extent=[-1 * (np.amax(np.abs(u))) - 10, np.amax(np.abs(u)) + 10, -1 * (np.amax(abs(v))) - 10, \
+                                np.amax(abs(v)) + 10])
+    plt.plot(u, v, "k")
+    plt.xlim([-1 * (np.amax(np.abs(u))) - 10, np.amax(np.abs(u)) + 10])
+    plt.ylim(-1 * (np.amax(abs(v))) - 10, np.amax(abs(v)) + 10)
     plt.xlabel("u", size=18)
     plt.title("Imaginary part of visibilities", size=18)
     plt.savefig('Plots/Visibilities.png', transparent=True)
@@ -532,7 +566,8 @@ def plot_visibilities(u, v, uu, vv, point_sources):
     ax.tick_params(labelsize=16)
     plt.close()
 
-def get_all_uv_and_uv_tracks(L, f, h, dec, point_sources, layout):
+
+def get_all_uv_and_uv_tracks(L, f, h, dec, point_sources, layout, add_gauss=False):
     """
     Gets all of the UV tracks and UV coordinates for all of the baselines
 
@@ -551,6 +586,9 @@ def get_all_uv_and_uv_tracks(L, f, h, dec, point_sources, layout):
     :param layout: The antenna layout
     :type layout: numpy float array
 
+    :param add_gauss: Add the gaussian kernel to the visibilities
+    :type add_gauss: Boolean
+
     :returns: All of the UV tracks and coordinates across all the baselines
     """
     cherrypy.log("Getting UV Tracks")
@@ -558,18 +596,19 @@ def get_all_uv_and_uv_tracks(L, f, h, dec, point_sources, layout):
     all_uv = []
 
     for i in range(len(layout)):
-        for j in range(i+1, len(layout)):
+        for j in range(i + 1, len(layout)):
             b = layout[j] - layout[i]
-            uv, u_d, v_d, uu, vv, uv_tracks = get_uv_and_uv_tracks(b, L, f, h, dec, point_sources)
+            uv, u_d, v_d, uu, vv, uv_tracks = get_uv_and_uv_tracks(b, L, f, h, dec, point_sources, add_gauss)
             all_uv.append(uv)
             all_uv_tracks.append(uv_tracks)
 
             b = layout[i] - layout[j]
-            uv, u_d, v_d, uu, vv, uv_tracks = get_uv_and_uv_tracks(b, L, f, h, dec, point_sources)
+            uv, u_d, v_d, uu, vv, uv_tracks = get_uv_and_uv_tracks(b, L, f, h, dec, point_sources,add_gauss)
             all_uv.append(uv)
             all_uv_tracks.append(uv_tracks)
 
     return all_uv_tracks, all_uv
+
 
 def get_TART_uv_and_tracks(layout, L, f, visibilities):
     """
@@ -593,9 +632,9 @@ def get_TART_uv_and_tracks(layout, L, f, visibilities):
     all_uv = []
     all_uv_tracks = []
     for i in range(len(layout)):
-        for j in range(i+1, len(layout)):
+        for j in range(i + 1, len(layout)):
             b = layout[j] - layout[i]
-            u_d, v_d =  get_uv_tracks(b, L, f, 0, L)
+            u_d, v_d = get_uv_tracks(b, L, f, 0, L)
             uv = []
             uv.append([u_d, v_d])
             uv = np.array(uv)
@@ -604,7 +643,7 @@ def get_TART_uv_and_tracks(layout, L, f, visibilities):
             all_uv_tracks.append(uv_tracks)
 
             b = layout[i] - layout[j]
-            u_d, v_d =  get_uv_tracks(b, L, f, 0, L)
+            u_d, v_d = get_uv_tracks(b, L, f, 0, L)
             uv = []
             uv.append([u_d, v_d])
             uv = np.array(uv)
@@ -657,15 +696,15 @@ def image(uv, uv_tracks, cell_size, dec_0, res, name, showGrid):
     # Nl = find_closest_power_of_two(Nl)
     # Nm = find_closest_power_of_two(Nm)
 
-    rad_d_l = cell_size_l * (np.pi/180)
-    rad_d_m = cell_size_m * (np.pi/180)
+    rad_d_l = cell_size_l * (np.pi / 180)
+    rad_d_m = cell_size_m * (np.pi / 180)
 
     # Find the center of the view.
     L = np.cos(dec_0) * np.sin(0)
     M = np.sin(dec_0) * np.cos(dec_0) - np.cos(dec_0) * np.sin(dec_0) * np.cos(0)
 
     gridded, cell_size_error = grid(Nl, Nm, uv_tracks, uv, cell_size_l, cell_size_m)
-    img = plt.figure(figsize=(8,8))
+    img = plt.figure(figsize=(8, 8))
 
     plt.title("Baseline Grid", size=26)
     plt.set_cmap('nipy_spectral')
@@ -681,16 +720,19 @@ def image(uv, uv_tracks, cell_size, dec_0, res, name, showGrid):
     
 
     image = fourier_transform_grid(gridded)
-    psf = np.ones ((np.array(uv_tracks).shape), dtype=complex)
+    psf = np.ones((np.array(uv_tracks).shape), dtype=complex)
     psf_grid, cell_size_error = grid(Nl, Nm, psf, uv, cell_size_l, cell_size_m)
     psf_image = fourier_transform_grid(psf_grid)
 
-    scale_factor = psf_image[int(psf_image.shape[0]/2)][int(psf_image.shape[1]/2)]
+    scale_factor = psf_image[int(psf_image.shape[0] / 2)][int(psf_image.shape[1] / 2)]
     image /= scale_factor
     psf_image /= scale_factor
 
-    draw_image(image, Nl, Nm, cell_size_l, cell_size_m, L, M, name + " Sky Model", "l [degrees]", "m [degrees]", cell_size_error, showGrid)
-    draw_image(psf_image, Nl, Nm, cell_size_l, cell_size_m, L, M, name + " PSF", "l [degrees]", "m [degrees]", cell_size_error, False)
+    draw_image(image, Nl, Nm, cell_size_l, cell_size_m, L, M, name + " Sky Model", "l [degrees]", "m [degrees]",
+               cell_size_error, showGrid)
+    draw_image(psf_image, Nl, Nm, cell_size_l, cell_size_m, L, M, name + " PSF", "l [degrees]", "m [degrees]",
+               cell_size_error, False)
+
 
 def grid(Nl, Nm, uv_tracks, uv, cell_size_l, cell_size_m):
     """
@@ -726,11 +768,11 @@ def grid(Nl, Nm, uv_tracks, uv, cell_size_l, cell_size_m):
 
     for i in range(len(uv)):
         scaled_uv = np.copy(uv[i])
-        scaled_uv[:,0] *= np.deg2rad(cell_size_l * Nl)
-        scaled_uv[:,1] *= np.deg2rad(cell_size_m * Nm)
+        scaled_uv[:, 0] *= np.deg2rad(cell_size_l * Nl)
+        scaled_uv[:, 1] *= np.deg2rad(cell_size_m * Nm)
 
         for j in range(len(scaled_uv)):
-            y,x = int(np.round(scaled_uv[j][0])), int(np.round(scaled_uv[j][1]))
+            y, x = int(np.round(scaled_uv[j][0])), int(np.round(scaled_uv[j][1]))
             x += half_l
             y += half_m
             if not x >= vis.shape[0] and not y >= vis.shape[1] and not x < -vis.shape[0] and not y < -vis.shape[1]:
@@ -746,6 +788,7 @@ def grid(Nl, Nm, uv_tracks, uv, cell_size_l, cell_size_m):
 
     return vis, cell_size_error
 
+
 def fourier_transform_grid(grid):
     """
     Using the inverse fourier transform, converts the grid into an image
@@ -759,8 +802,9 @@ def fourier_transform_grid(grid):
     image = np.abs(image)
     return np.real(image)
 
+
 def draw_image(image, Nl, Nm, cell_size_l, cell_size_m, L, M, name,
-                x_title, y_title, cell_size_error, showGrid):
+               x_title, y_title, cell_size_error, showGrid):
     """
     Draws the image onto a figure, adds a color map to the side and draws circles
     for the declination.
@@ -804,38 +848,36 @@ def draw_image(image, Nl, Nm, cell_size_l, cell_size_m, L, M, name,
 
     :returns: Nothing
     """
-    img = plt.figure(figsize=(9,8))
-    plt.title("Reconstructed " + name,size=26)
+    img = plt.figure(figsize=(9, 8))
+    plt.title("Reconstructed " + name, size=26)
     plt.set_cmap('nipy_spectral')
 
     # im_vis = plt.imshow(image, origin='lower', extent=[L - Nl / 2 * cell_size_l, L + Nl / 2 * cell_size_l,
     #                                                     M - Nm / 2 * cell_size_m, M + Nm / 2 * cell_size_m])
     axc = plt.gca()
     im_vis = axc.imshow(image, origin='lower', extent=[L - Nl / 2 * cell_size_l, L + Nl / 2 * cell_size_l,
-                                                        M - Nm / 2 * cell_size_m, M + Nm / 2 * cell_size_m])
-
+                                                       M - Nm / 2 * cell_size_m, M + Nm / 2 * cell_size_m])
 
     if showGrid:
-        plt.axvline(x=0,color='k')
-        plt.axhline(y=0,color='k')
-        for i in range(10,91,10):
-            dec = i * np.pi/180
+        plt.axvline(x=0, color='k')
+        plt.axhline(y=0, color='k')
+        for i in range(10, 91, 10):
+            dec = i * np.pi / 180
             d_ra = 0
             dec_0 = 0
 
-            l = math.cos(dec) * math.sin(d_ra) * 180/np.pi
-            m = (math.sin(dec) * math.cos(dec_0) - math.cos(dec) * math.sin(dec_0) * math.cos(d_ra)) * 180/np.pi
-            radius = np.sqrt(l**2 + m**2)
-            circ = Circle((0, 0), radius, fill=False, alpha=1,color='k', lw=2)
+            l = math.cos(dec) * math.sin(d_ra) * 180 / np.pi
+            m = (math.sin(dec) * math.cos(dec_0) - math.cos(dec) * math.sin(dec_0) * math.cos(d_ra)) * 180 / np.pi
+            radius = np.sqrt(l ** 2 + m ** 2)
+            circ = Circle((0, 0), radius, fill=False, alpha=1, color='k', lw=2)
             axc.add_patch(circ)
 
     cbr = img.colorbar(im_vis)
-    cbr.set_label('Jy per Beam',size=24)
+    cbr.set_label('Jy per Beam', size=24)
     cbr.ax.tick_params(labelsize=22)
-    plt.xlabel(x_title,size=24)
-    plt.ylabel(y_title,size=24)
+    plt.xlabel(x_title, size=24)
+    plt.ylabel(y_title, size=24)
     axc.tick_params(labelsize=22)
-
 
     if cell_size_error:
         txt = "INVALID CELL SIZE"
