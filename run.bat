@@ -1,1 +1,1 @@
-python3 Pipeline.py
+python Pipeline.py

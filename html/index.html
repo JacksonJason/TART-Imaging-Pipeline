@@ -95,7 +95,7 @@
 
           if (cont) {
             $.post("/generate_custom_graphs",{input_file:$("#input_file").val(),
-                  lsm_file:$("#lsm_file").val(), baseline:base,
+                  sky_model_file:$("#lsm_file").val(), baseline:base,
                   cell_size:cell_size, res: resolusion, showGrid: grid})
              .done(function(string) {
 

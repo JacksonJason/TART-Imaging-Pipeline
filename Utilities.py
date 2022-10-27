@@ -8,7 +8,7 @@ import math
 from mpl_toolkits.mplot3d import Axes3D
 from matplotlib.patches import Ellipse
 import matplotlib.pylab as pl
-import Tigger
+import json
 from matplotlib import rc
 import cherrypy
 
@@ -273,22 +273,23 @@ def load_sky_model(model_name):
               the flux sources, and the center right ascention
     """
     cherrypy.log("Loading Sky Model")
-    model = Tigger.load(model_name)
+    f = open(model_name, "r")
+    model = json.load(f)
     RA_sources = []
     DEC_sources = []
     Flux_sources = []
 
-    for val in model.sources:
-        RA_sources.append(val.pos.ra)
-        DEC_sources.append(val.pos.dec)
-        Flux_sources.append(val.flux.I)
+    for val in model["sources"]:
+        RA_sources.append(val["ra"])
+        DEC_sources.append(val["dec"])
+        Flux_sources.append(val["I"])
 
     RA_sources = np.array(RA_sources)
     DEC_sources = np.array(DEC_sources)
     Flux_sources = np.array(Flux_sources)
 
-    ra_0 = model.ra0
-    dec_0 = model.dec0
+    ra_0 = model["ra0"]
+    dec_0 = model["dec0"]
     ra_0_rad = ra_0 * (np.pi/12)
     dec_0_rad = dec_0 * (np.pi/180)
 
@@ -659,22 +660,25 @@ def image(uv, uv_tracks, cell_size, dec_0, res, name, showGrid):
     rad_d_l = cell_size_l * (np.pi/180)
     rad_d_m = cell_size_m * (np.pi/180)
 
+    # Find the center of the view.
+    L = np.cos(dec_0) * np.sin(0)
+    M = np.sin(dec_0) * np.cos(dec_0) - np.cos(dec_0) * np.sin(dec_0) * np.cos(0)
+
     gridded, cell_size_error = grid(Nl, Nm, uv_tracks, uv, cell_size_l, cell_size_m)
     img = plt.figure(figsize=(8,8))
 
     plt.title("Baseline Grid", size=26)
     plt.set_cmap('nipy_spectral')
-    im = plt.imshow(np.real(np.abs(gridded)), origin='lower')
-    plt.ylabel("v [rad$^{-1}$]",size=24)
-    plt.xlabel("u [rad$^{-1}$]", size=24)
+    plt.tick_params(left = False, right = False , labelleft = False ,
+                labelbottom = False, bottom = False)
+    im = plt.imshow(np.real(np.abs(gridded)), 
+                origin='lower')
     ax = plt.gca()
     ax.tick_params(labelsize=22)
     plt.savefig('Plots/' + name + 'grid.png', transparent=True)
     plt.close()
 
-    # Find the center of the view.
-    L = np.cos(dec_0) * np.sin(0)
-    M = np.sin(dec_0) * np.cos(dec_0) - np.cos(dec_0) * np.sin(dec_0) * np.cos(0)
+    
 
     image = fourier_transform_grid(gridded)
     psf = np.ones ((np.array(uv_tracks).shape), dtype=complex)

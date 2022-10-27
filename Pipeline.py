@@ -13,6 +13,7 @@ import os
 import re
 import datetime
 env = Environment(loader=FileSystemLoader('html'))
+cherrypy.config.update({'server.socket_port': 8099})
 
 class pipeline(object):
 
@@ -134,7 +135,7 @@ class pipeline(object):
         ut.image(all_uv, all_uv_tracks, cell_size, 0, res, "TART", showGrid)
 
     @cherrypy.expose
-    def generate_custom_graphs(self, input_file=None, lsm_file=None,
+    def generate_custom_graphs(self, input_file=None, sky_model_file=None,
                                 baseline=None, cell_size=None, res=None,
                                 showGrid=False):
         """
@@ -145,8 +146,8 @@ class pipeline(object):
         :param input_file: The file that contains the telescope information
         :type input_file: str
 
-        :param lsm_file: The file that contains the sky model
-        :type lsm_file: str
+        :param sky_model_file: The file that contains the sky model
+        :type sky_model_file: str
 
         :param baseline: The baseline to plot, for information purposes, in the
                          form "x y" where x and y are numbers
@@ -164,8 +165,8 @@ class pipeline(object):
         :returns: nothing
         """
         upload_path = os.path.dirname(__file__)
-        if (res is not "" and input_file is not "" and lsm_file is not ""
-            and baseline is not "" and cell_size is not ""):
+        if (res != "" and input_file != "" and sky_model_file != ""
+            and baseline != "" and cell_size != ""):
 
             cherrypy.log("Working on Custom Image")
 
@@ -173,10 +174,10 @@ class pipeline(object):
             bl_1 = int(bl[0]) - 1
             bl_2 = int(bl[1]) - 1
             input_file = input_file.split("\\")[-1]
-            lsm_file = lsm_file.split("\\")[-1]
-            input_file = os.path.normpath(os.path.join(upload_path, input_file))
+            sky_model_file = sky_model_file.split("\\")[-1]
+            input_file = os.path.normpath(os.path.join(upload_path, "Antenna_Layouts", input_file))
 
-            with open("Antenna_Layouts/" + input_file) as outfile:
+            with open(input_file) as outfile:
                 json_antenna = json.load(outfile)
 
             custom_layout = np.array(json_antenna['antennas'])
@@ -193,7 +194,7 @@ class pipeline(object):
             dec = dec[0] + dec[1]/60. + dec[2]/3600.
 
             ut.plot_baseline(b, custom_L, custom_f, sha, eha, dec, "CUSTOM")
-            uv, uv_tracks, dec_0, ra_0 = ut.get_visibilities(b, custom_L, custom_f, sha, eha, "Sky_Models/" + lsm_file, custom_layout)
+            uv, uv_tracks, dec_0, ra_0 = ut.get_visibilities(b, custom_L, custom_f, sha, eha, os.path.join(upload_path, "Sky_Models", sky_model_file), custom_layout)
             if showGrid == "true":
                 showGrid = True
             else:
@@ -220,7 +221,7 @@ class pipeline(object):
         """
         cherrypy.log("Working on TART images")
 
-        if cell_size is not "" and loc is not "":
+        if cell_size != "" and loc != "":
             cherrypy.log("Retrieiving telescope information")
             if showGrid == "true":
                 showGrid = True
@@ -334,7 +335,7 @@ class pipeline(object):
         :returns: nothing
         """
         cherrypy.log("Working on TART images from file")
-        if cell_size is not "":
+        if cell_size != "":
             if showGrid == "true":
                 showGrid = True
             else:
