@@ -653,7 +653,7 @@ def get_TART_uv_and_tracks(layout, L, f, visibilities):
     return all_uv, all_uv_tracks
 
 
-def image(uv, uv_tracks, cell_size, dec_0, res, name, showGrid):
+def image(uv, uv_tracks, cell_size, dec_0, res, name, showGrid, gif=False):
     """
     Calculates the Resolusion from the cell size and the provided resolution,
     it then plots the baseline grid and applies the visibilities to a grid.
@@ -729,7 +729,7 @@ def image(uv, uv_tracks, cell_size, dec_0, res, name, showGrid):
     psf_image /= scale_factor
 
     draw_image(image, Nl, Nm, cell_size_l, cell_size_m, L, M, name + " Sky Model", "l [degrees]", "m [degrees]",
-               cell_size_error, showGrid)
+               cell_size_error, showGrid, gif)
     draw_image(psf_image, Nl, Nm, cell_size_l, cell_size_m, L, M, name + " PSF", "l [degrees]", "m [degrees]",
                cell_size_error, False)
 
@@ -804,7 +804,7 @@ def fourier_transform_grid(grid):
 
 
 def draw_image(image, Nl, Nm, cell_size_l, cell_size_m, L, M, name,
-               x_title, y_title, cell_size_error, showGrid):
+               x_title, y_title, cell_size_error, showGrid, gif=False):
     """
     Draws the image onto a figure, adds a color map to the side and draws circles
     for the declination.
@@ -842,7 +842,6 @@ def draw_image(image, Nl, Nm, cell_size_l, cell_size_m, L, M, name,
     :param cell_size_error: whether or not the cell size produced an error boolean
     :type cell_size_error: boolean
 
-
     :param showGrid: Whether or not to show the grid on the image
     :type showGrid: boolean
 
@@ -852,11 +851,16 @@ def draw_image(image, Nl, Nm, cell_size_l, cell_size_m, L, M, name,
     plt.title("Reconstructed " + name, size=26)
     plt.set_cmap('nipy_spectral')
 
-    # im_vis = plt.imshow(image, origin='lower', extent=[L - Nl / 2 * cell_size_l, L + Nl / 2 * cell_size_l,
-    #                                                     M - Nm / 2 * cell_size_m, M + Nm / 2 * cell_size_m])
     axc = plt.gca()
-    im_vis = axc.imshow(image, origin='lower', extent=[L - Nl / 2 * cell_size_l, L + Nl / 2 * cell_size_l,
+
+    if (gif):
+        im_vis = axc.imshow(image, origin='lower', extent=[L - Nl / 2 * cell_size_l, L + Nl / 2 * cell_size_l,
+                                                    M - Nm / 2 * cell_size_m, M + Nm / 2 * cell_size_m],
+                                                    vmax=0.05)
+    else:
+        im_vis = axc.imshow(image, origin='lower', extent=[L - Nl / 2 * cell_size_l, L + Nl / 2 * cell_size_l,
                                                        M - Nm / 2 * cell_size_m, M + Nm / 2 * cell_size_m])
+    
 
     if showGrid:
         plt.axvline(x=0, color='k')

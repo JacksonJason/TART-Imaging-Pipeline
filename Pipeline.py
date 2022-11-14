@@ -132,7 +132,7 @@ class pipeline(object):
 
         res = 2 * 180 / np.pi
 
-        ut.image(all_uv, all_uv_tracks, cell_size, 0, res, "TART", showGrid)
+        ut.image(all_uv, all_uv_tracks, cell_size, 0, res, "TART", showGrid, gif=True)
 
     @cherrypy.expose
     def generate_custom_graphs(self, input_file=None, sky_model_file=None,
@@ -285,15 +285,18 @@ class pipeline(object):
         start_time = round(time.time() * 1000)
         cwd = os.getcwd()
         counter = 0
-        if not os.path.exists(cwd + "/GIF/"):
-            os.mkdir(cwd + "/GIF/")
+        if not os.path.exists("".join([cwd, os.path.sep, "GIF", os.path.sep])):
+            os.mkdir("".join([cwd, os.path.sep, "GIF", os.path.sep]))
 
         while round(time.time() * 1000) - start_time < int(duration):
             try:
                 begin_minute = round(time.time() * 1000)
                 self.generate_graphs(cell_size, loc, showGrid)
-
-                shutil.copy("Plots/ReconstructedTART SkyModel.png", cwd + "/GIF/" + str(counter) + ".png")
+                
+                shutil.copy("".join([
+                    cwd, os.path.sep, "Plots", os.path.sep, "ReconstructedTART Sky Model.png"]), 
+                    "".join([cwd, os.path.sep, "GIF", os.path.sep, str(counter) + ".png"])
+                    )
                 counter += 1
 
                 remaining_ms = 30000 - (round(time.time() * 1000) - begin_minute)
@@ -301,11 +304,11 @@ class pipeline(object):
                     time.sleep(remaining_ms / 1000)
                 cherrypy.log(str(counter / 2) + " Minutes into GIF")
 
-            except:
-                cherrypy.log("Error on " + str(counter))
+            except Exception as e:
+                cherrypy.log(e)
 
         frames = []
-        images = [f for f in glob.glob(cwd + "/GIF/*.png", recursive=False)]
+        images = [f for f in glob.glob("".join([cwd,  os.path.sep, "GIF", os.path.sep, "*.png"]), recursive=False)]
         images.sort(key=self.natural_keys)
 
         for im in images:
@@ -313,13 +316,13 @@ class pipeline(object):
             frames.append(new_frame)
             counter += 1
 
-        frames[0].save(cwd + "/GIF/observation_period.gif", format='GIF', append_images=frames[1:], save_all=True,
+        frames[0].save("".join([cwd,  os.path.sep, "GIF", os.path.sep, "observation_period.gif"]), format='GIF', append_images=frames[1:], save_all=True,
                        duration=200, loop=0)
 
-        dir = os.listdir(cwd + "/GIF")
+        dir = os.listdir("".join([cwd, os.path.sep, "GIF"]))
         for item in dir:
             if item.endswith(".png"):
-                os.remove(os.path.join(cwd + "/GIF", item))
+                os.remove("".join([cwd, os.path.sep, "GIF", os.path.sep, item]))
         cherrypy.log("Done")
 
     @cherrypy.expose
