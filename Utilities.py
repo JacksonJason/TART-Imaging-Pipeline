@@ -680,6 +680,9 @@ def image(uv, uv_tracks, cell_size, dec_0, res, name, showGrid, gif=False):
 
     :param showGrid: Whether or not to show the grid on the image
     :type showGrid: boolean
+    
+    :param gif: Whether or not this is a GIF observation
+    :type gif: boolean
 
     :returns: Nothing
     """
@@ -693,8 +696,6 @@ def image(uv, uv_tracks, cell_size, dec_0, res, name, showGrid, gif=False):
 
     Nl = int(np.round(degrees_l / cell_size_l))
     Nm = int(np.round(degrees_m / cell_size_m))
-    # Nl = find_closest_power_of_two(Nl)
-    # Nm = find_closest_power_of_two(Nm)
 
     rad_d_l = cell_size_l * (np.pi / 180)
     rad_d_m = cell_size_m * (np.pi / 180)
@@ -844,6 +845,9 @@ def draw_image(image, Nl, Nm, cell_size_l, cell_size_m, L, M, name,
 
     :param showGrid: Whether or not to show the grid on the image
     :type showGrid: boolean
+
+    :param gif: Whether or not this is a GIF observation
+    :type gif: boolean
 
     :returns: Nothing
     """
