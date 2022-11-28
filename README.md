@@ -13,12 +13,12 @@ Python 3 must be installed as well as the requirements listed below.
 Simply run the run.bat or run.sh depending on your operating system.
 
 ### Requirements
-* numpy
-* scipy
-* matplotlib
-* cherrypy
-* jinja2
-* pillow
+* numpy==1.23.4
+* scipy==1.8.0
+* matplotlib==3.5.1
+* cherrypy==18.8.0
+* jinja2==3.1.2
+* pillow==9.0.1
 
 * Latex must also be installed for the image axes. The following are recommended:
     * texlive-latex-extra
